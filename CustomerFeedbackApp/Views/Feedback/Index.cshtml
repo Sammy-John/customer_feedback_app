@@ -1,0 +1,26 @@
+﻿@model CustomerFeedbackApp.Models.Feedback
+
+<h2>Submit Your Feedback</h2>
+<form asp-action="SubmitFeedback" method="post">
+    <div>
+        <label asp-for="Name"></label>
+        <input asp-for="Name" />
+    </div>
+    <div>
+        <label asp-for="Email"></label>
+        <input asp-for="Email" />
+    </div>
+    <div>
+        <label asp-for="FeedbackType"></label>
+        <select asp-for="FeedbackType">
+            <option value="Complaint">Complaint</option>
+            <option value="Suggestion">Suggestion</option>
+            <option value="Praise">Praise</option>
+        </select>
+    </div>
+    <div>
+        <label asp-for="Message"></label>
+        <textarea asp-for="Message"></textarea>
+    </div>
+    <button type="submit">Submit Feedback</button>
+</form>
