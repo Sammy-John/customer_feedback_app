@@ -1,14 +1,84 @@
-﻿@model IEnumerable<CustomerFeedbackApp.Models.Feedback>
+﻿@model PaginatedList<CustomerFeedbackApp.Models.Feedback>
 
 <h2>Feedback Dashboard</h2>
-<table class="table table-striped">
+
+<!-- Display any success or error messages -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<form asp-action="Index" method="get" class="form-inline mb-3">
+    <!-- Search Input -->
+    <input type="text" name="searchString" value="@(ViewData["CurrentFilter"] as string)" class="form-control mr-sm-2" placeholder="Search..." />
+    <input type="submit" value="Search" class="btn btn-outline-success my-2 my-sm-0" />
+
+    <!-- Feedback Type Filter -->
+    <div class="ml-3">
+        <label for="typeFilter">Filter by Type:</label>
+        <select id="typeFilter" name="typeFilter" class="form-select" onchange="this.form.submit()">
+            @{
+                var selectedType = ViewData["TypeFilter"] as string;
+            }
+            @* Render options dynamically without C# expressions in attributes *@
+            @if (string.IsNullOrEmpty(selectedType))
+            {
+                <option value="" selected="selected">All Types</option>
+            }
+            else
+            {
+                <option value="">All Types</option>
+            }
+
+            @if (selectedType == "Complaint")
+            {
+                <option value="Complaint" selected="selected">Complaint</option>
+            }
+            else
+            {
+                <option value="Complaint">Complaint</option>
+            }
+
+            @if (selectedType == "Suggestion")
+            {
+                <option value="Suggestion" selected="selected">Suggestion</option>
+            }
+            else
+            {
+                <option value="Suggestion">Suggestion</option>
+            }
+
+            @if (selectedType == "Praise")
+            {
+                <option value="Praise" selected="selected">Praise</option>
+            }
+            else
+            {
+                <option value="Praise">Praise</option>
+            }
+        </select>
+    </div>
+</form>
+
+<!-- Feedback Table -->
+<table class="table table-striped table-bordered mt-3">
     <thead>
         <tr>
-            <th>Name</th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.NameSortParam">Name</a>
+            </th>
             <th>Email</th>
             <th>Type</th>
             <th>Message</th>
-            <th>Submitted At</th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.DateSortParam">Submitted At</a>
+            </th>
+            <th>Status</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -20,7 +90,49 @@
                 <td>@feedback.FeedbackType</td>
                 <td>@feedback.Message</td>
                 <td>@feedback.SubmittedAt.ToString("g")</td>
+                <td>
+                    <!-- Display the status with a color-coded badge -->
+                    @if (feedback.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Resolved</span>
+                    }
+                </td>
+                <td>
+                    <!-- Status Change Button -->
+                    <form asp-action="ChangeStatus" method="post" asp-route-id="@feedback.Id" class="d-inline">
+                        @if (feedback.Status == "Pending")
+                        {
+                            <button type="submit" name="status" value="Resolved" class="btn btn-secondary btn-sm">Resolve</button>
+                        }
+                        else
+                        {
+                            <button type="submit" name="status" value="Pending" class="btn btn-primary btn-sm">Reopen</button>
+                        }
+                    </form>
+
+                    <!-- Delete Feedback Form -->
+                    <form asp-action="Delete" method="post" asp-route-id="@feedback.Id" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Pagination Controls -->
+<div>
+    @if (Model.HasPreviousPage)
+    {
+        <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)">Previous</a>
+    }
+
+    @if (Model.HasNextPage)
+    {
+        <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)">Next</a>
+    }
+</div>
